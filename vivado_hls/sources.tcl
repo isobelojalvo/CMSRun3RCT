@@ -5,6 +5,8 @@ set_top algo_unpacked
 add_files src/algo_unpacked.cpp
 add_files src/ClusterFinder.cc
 add_files src/bitonicSorter.cc
+add_files src/algo_unpacked_new.cpp
+add_files src/Stage3Jet.cc
 #
 ### Add testbed files
 add_files -tb src/algo_unpacked_tb.cpp 
