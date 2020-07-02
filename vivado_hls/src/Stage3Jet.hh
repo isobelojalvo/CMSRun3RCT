@@ -30,6 +30,7 @@ const uint16_t MaxUCTRegionsPhi = MaxCaloPhi / NPhiInRegion;
 const uint16_t MaxUCTRegionsEta = NRegionsInCard + NHFRegionsInCard; // Labelled -MaxUCTRegionsEta to +MaxUCTRegionsEta skipping 0
 
 const uint16_t NJetsPerCard = 12; // FIXME
+const uint16_t NRegion = NEta*NPhi; // FIXME
 
 uint16_t getPeakBinOf4(uint16_t et[4], uint16_t etSum);
 
@@ -37,23 +38,11 @@ bool makeRegion(uint16_t towers[NEtaInRegion][NPhiInRegion], uint16_t *peakEta, 
 
 bool getRegionTowers(uint16_t regionTowers[NEta][NPhi][NEtaInRegion][NPhiInRegion], uint16_t rEta, uint16_t rPhi, uint16_t *towers[NEtaInRegion][NPhiInRegion], uint16_t *regionET);
 
-bool getRegionNorth(uint16_t centerEta, uint16_t centerPhi, uint16_t *northEta, uint16_t *northPhi);
+bool makeStage3Jets(uint16_t regionTowers[NEta][NPhi][NEtaInRegion][NPhiInRegion], uint16_t jetET[NEta*NPhi]);
 
-bool getRegionSouth(uint16_t centerEta, uint16_t centerPhi, uint16_t *southEta, uint16_t *southPhi);
+void et_3by3(uint16_t et[NEta*NPhi], uint16_t et_3by3[NEta*NPhi]);
 
-bool getRegionEast(uint16_t centerEta, uint16_t centerPhi, uint16_t *eastEta, uint16_t *eastPhi);
-
-bool getRegionWest(uint16_t centerEta, uint16_t centerPhi, uint16_t *westEta, uint16_t *westPhi);
-
-bool getRegionNE(uint16_t centerEta, uint16_t centerPhi, uint16_t *neEta, uint16_t *nePhi);
-
-bool getRegionNW(uint16_t centerEta, uint16_t centerPhi, uint16_t *nwEta, uint16_t *nwPhi);
-
-bool getRegionSE(uint16_t centerEta, uint16_t centerPhi, uint16_t *seEta, uint16_t *sePhi);
-
-bool getRegionSW(uint16_t centerEta, uint16_t centerPhi, uint16_t *swEta, uint16_t *swPhi);
-
-bool makeStage3Jets(uint16_t regionTowers[NEta][NPhi][NEtaInRegion][NPhiInRegion], uint16_t jetET[NEta*NPhi], uint16_t jetEta[NEta*NPhi], uint16_t jetPhi[NEta*NPhi]);
+void jet(uint16_t jet_seed, uint16_t et[NEta*NPhi], uint16_t et_3by3[NEta*NPhi], uint16_t jet_et[NEta*NPhi]);
 
 bool getJetsInCard(uint16_t towers[NEta*NPhi*NEtaInRegion*NPhiInRegion], uint16_t SortedJet_peakEta[NJetsPerCard], uint16_t SortedJet_peakPhi[NJetsPerCard], uint16_t SortedJet_ET[NJetsPerCard]);
 
