@@ -3,9 +3,9 @@
 
 array set opt {
     csim   1
-    synth  1
-    cosim  1
-    export 1
+    synth  0
+    cosim  0
+    export 0
     tv test_random_set2
 }
 
