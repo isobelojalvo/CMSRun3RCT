@@ -1,5 +1,5 @@
 ## Set the top level module
-set_top algo_unpacked
+set_top algo_unpacked_new
 ##
 #### Add source code
 add_files src/algo_unpacked.cpp
@@ -7,6 +7,8 @@ add_files src/ClusterFinder.cc
 add_files src/bitonicSorter.cc
 add_files src/algo_unpacked_new.cpp
 add_files src/Stage3Jet.cc
+add_files src/jet.cpp
+add_files src/et_3by3.cpp
 #
 ### Add testbed files
 add_files -tb src/algo_unpacked_tb.cpp 
