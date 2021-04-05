@@ -17,12 +17,12 @@ using namespace std;
 #include "calo_out_coordinates.h"
 #include "superregion.h"
 
-const uint16_t NRegionsPerLink = 11; // Bits 16-31, 32-47, ..., 176-191, keeping range(15, 0) unused
+const uint16_t NRegionsPerLink = 7; // Bits 16-31, 32-47, ..., 96-112, keeping range(15, 0) unused
 const uint16_t MaxRegions = N_CH_IN * NRegionsPerLink;
 
  /*
   * algo_unpacked interface exposes fully unpacked input and output link data.
-  * This version assumes use of 10G 8b10b links, and thus providing 192bits/BX/link.
+  * This version assumes use of 8G 8b10b links, and thus providing 192bits/BX/link.
   *
   * !!! N.B.: Do NOT use the first bytes of link_in/link_out (i.e. link_in/link_out[].range(7,0)
   * as this portion is reserved for transmission of 8b10b input/output link alignment markers.
@@ -32,7 +32,7 @@ const uint16_t MaxRegions = N_CH_IN * NRegionsPerLink;
   * !!! N.B. 2: make sure to assign every bit of link_out[] data. First byte should be assigned zero.
   */
 
-void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT])
+void algo_unpacked(ap_uint<112> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT])
 {
 
 // !!! Retain these 4 #pragma directives below in your algo_unpacked implementation !!!
@@ -41,7 +41,7 @@ void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT
 #pragma HLS PIPELINE II=3
 #pragma HLS INTERFACE ap_ctrl_hs port=return
 
-	ap_uint<192> tmp_link_out[N_CH_OUT];
+	ap_uint<112> tmp_link_out[N_CH_OUT];
 #pragma HLS ARRAY_PARTITION variable=tmp_link_out    complete dim=0
 	for (int idx = 0; idx < N_CH_OUT; idx++){
 #pragma HLS UNROLL
@@ -54,9 +54,9 @@ void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT
 
 
 	static bool first = true; //true to print 
-	region_t calo_regions[NR_CALO_REG];
+	region_t calo_regions[NR_CNTR_REG];
 #pragma HLS ARRAY_PARTITION variable=calo_regions complete dim=1
-	regionLoop: for(int iRegion = 0; iRegion < NR_CALO_REG; iRegion++) {
+	regionLoop: for(int iRegion = 0; iRegion < NR_CNTR_REG; iRegion++) {
 #pragma HLS UNROLL
 		if(iRegion > MaxRegions) {	
 			fprintf(stderr, "Too many regions - aborting");
@@ -84,10 +84,10 @@ void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT
 	
 ////////////////////////////////////////////////////////////
 	// Objets from input
-	ap_uint<10> et_calo[NR_CALO_REG];
-	ap_uint<10> pu_sub_et_calo[NR_CALO_REG];
+	ap_uint<10> et_calo[NR_CNTR_REG];
+	ap_uint<10> pu_sub_et_calo[NR_CNTR_REG];
 	
-	ap_uint<10> et_3by3_calo[NR_CALO_REG];
+	ap_uint<10> et_3by3_calo[NR_CNTR_REG];
 	
 	ap_uint<10> et_3by3_cntr[NR_CNTR_REG];
 
@@ -99,7 +99,7 @@ void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT
 	// Sort Objects (SO) , inputs
 	t_so so_in_jet_boosted[16];
 
-	ap_uint<NR_CALO_REG> tmp = 0;
+	ap_uint<NR_CNTR_REG> tmp = 0;
 	ap_uint<PUM_LEVEL_BITSIZE> pum_level;
 	ap_uint<5> pum_bin;
 
@@ -146,9 +146,11 @@ void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT
 	{
 #pragma HLS UNROLL
 		// 6 FWD-, 7 CNTR-, 7 CNTR+ and 6 FWD+ calo regions, 26 in total
-		for (int reg = 0; reg < 26; reg++)
+	        // IO April 4 2021 - Only using CNTR regions for this implemenation! 
+		for (int reg = 0; reg < 14; reg++)
 		{
 #pragma HLS UNROLL
+		  /*
 			if (reg <= 5) // FWD-
 			{
 				fwd_region[12 * phi + reg] = calo_regions[26 * phi + reg];
@@ -159,14 +161,15 @@ void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT
 			}
 			else // CNTR- and CNTR+
 			{
+		  */
 				centr_region[14 * phi - 6 + reg] = calo_regions[26 * phi + reg];
-			}
+				//	}
 		}
 	}
 
 ////////////////////////////////////////////////////////////////////////
 	//  "pum bin" calculation
-	for (int i = 0; i < NR_CALO_REG; i++)
+	for (int i = 0; i < NR_CNTR_REG; i++)
 	{
 #pragma HLS UNROLL
 		if (calo_regions[i].et > algo_config.pum_thr)
@@ -185,7 +188,7 @@ void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT
 
 ////////////////////////////////////////////////////////////
 	// Unpack calo ET values in et_calo array
-	for (int idx = 0; idx < NR_CALO_REG; idx++)
+	for (int idx = 0; idx < NR_CNTR_REG; idx++)
 	{
 #pragma HLS UNROLL
 		et_calo[idx] = calo_regions[idx].et;
@@ -294,11 +297,11 @@ void algo_unpacked(ap_uint<192> link_in[N_CH_IN], ap_uint<192> link_out[N_CH_OUT
 
 ////////////////////////////////////////////////////////////
 // count number of ones in bitString
-ap_uint<8> popcount(ap_uint<NR_CALO_REG> bitString)
+ap_uint<8> popcount(ap_uint<NR_CNTR_REG> bitString)
 {
         ap_uint<9> popcnt = 0;
 
-        for (ap_uint<9> b = 0; b < NR_CALO_REG; b++)
+        for (ap_uint<9> b = 0; b < NR_CNTR_REG; b++)
         {
 #pragma HLS unroll
                 popcnt += ((bitString >> b) & 1);
